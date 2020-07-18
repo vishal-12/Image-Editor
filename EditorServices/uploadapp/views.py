@@ -20,7 +20,7 @@ from run import background_removal
 from dotenv import load_dotenv
 
 envPath = os.path.join('D:/backgroundTool','.env')
-print (envPath)
+
 load_dotenv(envPath)
 
 class BgFileUploadView(APIView):
