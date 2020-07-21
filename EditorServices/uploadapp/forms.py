@@ -9,7 +9,8 @@ class BgFileContentForm(forms.ModelForm):
         model = BgFileToolModel
 
         exclude = []
-
+        
         file = forms.FileField(
             label='Input File data'
+        
     )

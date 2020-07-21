@@ -20,18 +20,18 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
-#import uploadapp import urls
-
-#from uploadapp.views import FileUploadView
 
 
+print ("going to load project urls")
 urlpatterns = [
     url(r'admin/', admin.site.urls),
     url(r'api/v1/upload/', include('uploadapp.urls')),
     #url('upload', FileUploadView.as_view()),
-    path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-    path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+#    path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+#    path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
 ]
 
 if settings.DEBUG:
   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+

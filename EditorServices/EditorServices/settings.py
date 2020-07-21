@@ -25,9 +25,9 @@ SECRET_KEY = '%k9!=^vt*p7f$8@qd3bl7l0qyx5c7oc9t9a4plf$=^b5wcpu^6'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["ec2-3-211-9-95.compute-1.amazonaws.com"]
 
-
+httpUrl = "http://ec2-3-211-9-95.compute-1.amazonaws.com:9090"
 # Application definition
 
 INSTALLED_APPS = [
@@ -70,6 +70,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'EditorServices.wsgi.application'
+
+
+
+
 
 
 # Database

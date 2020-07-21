@@ -1,14 +1,13 @@
 
-from rest_framework.parsers import FileUploadParser
+#from rest_framework.parsers import FileUploadParser
 #from requests_toolbelt.multipart.encoder import MultipartEncoder
 import requests
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-import json
-import os
-import logging
+import json,os
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
@@ -16,12 +15,21 @@ from uploadapp.serializers import BgFileSerializer
 from uploadapp.models  import BgFileToolModel
 from rest_framework import generics, status
 from rest_framework import permissions
+import threading 
 from run import background_removal
 from dotenv import load_dotenv
+import logging
+from EditorServices import settings
 
-envPath = os.path.join('D:/backgroundTool','.env')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-load_dotenv(envPath)
+BASE_DIR = BASE_DIR.strip("/EditorServices")
+envFile = os.path.join(BASE_DIR,".env")
+
+logger = logging.getLogger(__name__)
+
+load_dotenv()
+
 
 class BgFileUploadView(APIView):
 
@@ -36,7 +44,7 @@ class BgFileUploadView(APIView):
             imageOutputPath = os.getenv("IMAGEOUTPUTPATH")
             postFilePath = processUrl.split("media")
             if len(postFilePath) ==2:
-                print ("recieved fine")
+                pass
 
             else:
                 raise ValueError("error in generating the url")
@@ -44,20 +52,31 @@ class BgFileUploadView(APIView):
             finalInput = str(imageInputBaseUrl) + str(postFilePath[1])
 
             finalOutput = str(imageOutputPath) + str(fileName[1])
-            print ("final input and output request {}".format(finalInput,finalOutput))
+            responseData = json.loads(json.dumps(file_serializer.data))
+            processId = responseData.get("id","Unknown ID")
+            logger.info("final input {}  and output request {}".format(finalInput,finalOutput))
             scriptPath =os.getenv("SCRIPTPATH","error in SCRIPTPATH")
-            commandToRun = "python {}\main.py -i '{}' -o '{}'".format(scriptPath,finalInput,finalOutput)
+            commandToRun = "cd {} ; python main.py -i '{}' -o '{}' -id '{}'".format(scriptPath,finalInput,finalOutput,processId)
             print (commandToRun)
-            removalProcess = background_removal(commandToRun)
-            removalProcessreturnData =False
+            logger.info(commandToRun)
+            
+            removalProcess=threading.Thread(target=background_removal, args=(commandToRun,), daemon=True)
+        
+            removalProcess.start()
+           # removalProcess = background_removal(commandToRun)
             if removalProcess is True:
-                print ("O/p has been saved successfully")
-                removalProcessreturnData =True
+                logger.info("O/p has been saved successfully")
+            
+            #responseData = json.loads(json.dumps(file_serializer.data))
 
-            if removalProcessreturnData is False:
-                print ("Error occurred while calling main.py")
-            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+            #outputUrlName = settings.httpUrl + '/media' + finalOutput.split('media')[1]
+            #print (outputUrlName)
+            responseData.update({"sucess" : True,"Status": "Image process has been started"})
+            return Response(responseData, status=status.HTTP_201_CREATED)
 
+        else:
+            logger.error(file_serializer.errors)
+            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             # else:
             #     postUrl= os.getenv("APIURL")
             #     files = {'media': open(finalOutput, 'rb')}
@@ -80,8 +99,7 @@ class BgFileUploadView(APIView):
             #json_response = json.loads(response.text)
             #print json_response
 
-        else:
-            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class BgFileListView(generics.ListAPIView):
     queryset = BgFileToolModel.objects.all()  #.filter(status='active')
